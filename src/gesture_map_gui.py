@@ -57,15 +57,15 @@ class GesturePanel(tk.Tk):
         btns = ttk.Frame(container)
         btns.pack(fill="x", pady=(10, 0))
 
-        save_btn = ttk.Button(btns, text="Save", command=self.save_config)
-        load_btn = ttk.Button(btns, text="Load", command=self.load_config)
-        reset_btn = ttk.Button(btns, text="Reset to Defaults", command=self.reset_to_defaults)
-        start_btn = ttk.Button(btns, text="Start", command=self.finish_and_close)
+        # save_btn = ttk.Button(btns, text="Save", command=self.save_config)
+        # load_btn = ttk.Button(btns, text="Load", command=self.load_config)
+        # reset_btn = ttk.Button(btns, text="Reset to Defaults", command=self.reset_to_defaults)
+        # start_btn = ttk.Button(btns, text="Start", command=self.finish_and_close)
 
-        save_btn.pack(side="left")
-        load_btn.pack(side="left", padx=6)
-        reset_btn.pack(side="left")
-        start_btn.pack(side="right")
+        # save_btn.pack(side="left")
+        # load_btn.pack(side="left", padx=6)
+        # reset_btn.pack(side="left")
+        # start_btn.pack(side="right")
 
     def _apply_common_action(self, gesture: str, val: str):
         if gesture in self.vars:
