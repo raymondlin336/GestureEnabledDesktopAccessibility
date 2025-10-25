@@ -27,50 +27,39 @@ class OneEuro:
 
 
 def finger_states(hand_landmarks, handedness_label, img_h, img_w):
-    """
-    Returns:
-      fingers: dict like {'thumb': bool, 'index': bool, ...} for EXTENSION
-      meta: dict with extra geometry
-    """
     lm = hand_landmarks.landmark
     pts = np.array([[lm[i].x * img_w, lm[i].y * img_h] for i in range(21)], dtype=np.float32)
 
-    # Landmark indices
-    TIP = [4, 8, 12, 16, 20]
-    PIP = [3, 6, 10, 14, 18]
+    # indices for finger tips
+    finger_tips_idx = [4, 8, 12, 16, 20]
 
     fingers = {}
-
-    # --- Non-thumb fingers: "up" if fingertip is above its PIP joint (tip y significantly less than pip y)
-    for name, tip_i, pip_i in zip(["index","middle","ring","pinky"], TIP[1:], PIP[1:]):
-        tip_y = pts[tip_i, 1]
-        pip_y = pts[pip_i, 1]
-        fingers[name] = (tip_y < pip_y - 5)  # y grows downward, so "smaller y" = higher / more extended
 
     # --- Thumb detection (distance from palm, normalized)
     palm_indices = [0, 5, 9, 13, 17]  # wrist + MCPs
     palm_center = pts[palm_indices].mean(axis=0)
+    palm_y = palm_center[1]
+    palm_x = palm_center[0]
 
-    thumb_tip = pts[4]
-    index_tip = pts[8]
+    thumb_extended = None
+    thumb_up = None
+    # --- Non-thumb fingers: "up" if fingertip is above its PIP joint (tip y significantly less than pip y)
+    for name, tip_i in zip(["thumb", "index","middle","ring","pinky"], finger_tips_idx):
+        tip_y = pts[tip_i, 1]
+        tip_x = pts[tip_i, 0]
+        finger_extended = abs(tip_y - palm_y) >= 50 or abs(tip_x - palm_x) >= 50
+        fingers[name] = finger_extended
+        if name == "thumb":
+            thumb_extended = finger_extended
+            thumb_up = tip_y > palm_y
 
-    # Distances (euclidean)
-    thumb_dist = np.linalg.norm(thumb_tip - palm_center)
-    index_dist = np.linalg.norm(index_tip - palm_center) + 1e-6  # avoid div by 0
-
-    thumb_extended = (thumb_dist / index_dist) > 1.2  # tuneable threshold
-
-    fingers['thumb'] = bool(thumb_extended)
-
-    # geometry for thumbs_up/thumbs_down classification
-    wrist_y = pts[0,1]
-    thumb_tip_y = pts[4,1]
+    if thumb_up is None or thumb_extended is None:
+        print("Thumb not detected correctly.")
 
     meta = {
-        "wrist_y": wrist_y,
-        "thumb_tip_y": thumb_tip_y,
+        "num_extended": sum(fingers.values()),
         "thumb_extended": thumb_extended,
-        "palm_y": palm_center
+        "thumb_up": thumb_up
     }
 
     return fingers, meta
@@ -85,7 +74,8 @@ def classify_pose(fingers_up, meta):
     """
 
     # Count how many fingers are extended
-    count = sum(fingers_up.values())
+    count = meta["num_extended"]
+    thumbs_up = meta["thumb_up"]
     print(count)
 
     # Basic poses
@@ -96,27 +86,10 @@ def classify_pose(fingers_up, meta):
         # all curled -> fist
         return 'fist'
 
-    # Thumb logic
-    thumb_only = (
-        fingers_up.get('thumb', False)
-        and not any([fingers_up[k] for k in ['index','middle','ring','pinky']])
-    )
-
-    if thumb_only and meta["thumb_extended"]:
-        # Compare thumb tip vs wrist vertically
-        thumb_tip_y = meta["thumb_tip_y"]
-        wrist_y = meta["wrist_y"]
-        palm_y = meta["palm_y"]
-
-        # margin so tiny jitters don't flip it
-        margin = 50
-
-        print(thumb_tip_y, wrist_y, palm_y)
-
-        if thumb_tip_y < wrist_y - margin:
+    if count == 1 and meta["thumb_extended"]:
+        if thumbs_up:
             return 'thumbs_up'
-
-        if thumb_tip_y > wrist_y + margin:
+        else:
             return 'thumbs_down'
 
     # Nothing we care about
@@ -187,9 +160,9 @@ class GestureController:
 
 def main():
     update_delay = 0.1
-    cap = cv2.VideoCapture(1)
+    cap = cv2.VideoCapture(0)
     if cap.isOpened():
-        cap = cv2.VideoCapture(1)
+        cap = cv2.VideoCapture(0)
     else:
         raise SystemExit("Cannot find webcam 1 (external)")
 
