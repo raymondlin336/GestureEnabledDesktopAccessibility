@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import get_hand
 
 
 cap = cv2.VideoCapture(0)
@@ -26,11 +27,25 @@ while True:
         break
     
     
-    cv2.imshow('Webcam Test', frame)
+
+    annotated_frame, landmarks = get_hand.process_hand_frame(frame)
     
+
+    if landmarks:
+        for i, hand_landmarks in enumerate(landmarks):
+            x, y = get_hand.get_hand_position(hand_landmarks, frame.shape)
+            if x is not None:
+                # Display hand position on frame
+                cv2.putText(annotated_frame, f"Hand {i+1}: ({x}, {y})", 
+                          (10, 30 + i*30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+
+    inverted_frame = cv2.flip(annotated_frame, 1)
+    cv2.imshow('Hand Tracking', inverted_frame)
+
     # Exit on 'q' key press (you can replace this with hand gesture later)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
 cap.release()
+get_hand.cleanup_hands()  # Clean up MediaPipe resources
 cv2.destroyAllWindows()
