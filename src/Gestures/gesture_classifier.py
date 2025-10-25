@@ -59,7 +59,5 @@ class GestureClassifier:
                 return 'thumbs_up'
             else:
                 return 'thumbs_down'
-        elif count == 5:
-            return 'open_palm'
         else:
             return None
