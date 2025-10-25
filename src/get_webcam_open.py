@@ -66,12 +66,9 @@ while True:
                 ring_tip = hand_landmarks[16]
                 pinky_tip = hand_landmarks[20]
                 wrist = hand_landmarks[0]
-                
-                pixel_x = int(index_tip.x * frame.shape[1])
-                pixel_y = int(index_tip.y * frame.shape[0])
 
                 left_hand_drag(hand_landmarks)
-                cv2.circle(annotated_frame, (pixel_x, pixel_y), 10, (255, 0, 0), -1)
+
 
 
 
