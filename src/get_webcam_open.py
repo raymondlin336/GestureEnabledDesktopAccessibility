@@ -8,7 +8,7 @@ cap = cv2.VideoCapture(0)
 
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)   
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)  
-cap.set(cv2.CAP_PROP_FPS, 30) 
+cap.set(cv2.CAP_PROP_FPS, 60)
 
 
 if not cap.isOpened():
@@ -29,15 +29,14 @@ while True:
     
 
     annotated_frame, landmarks = get_hand.process_hand_frame(frame)
-    
 
-    if landmarks:
-        for i, hand_landmarks in enumerate(landmarks):
-            x, y = get_hand.get_hand_position(hand_landmarks, frame.shape)
-            if x is not None:
+    #if landmarks:
+        #for i, hand_landmarks in enumerate(landmarks):
+            #x, y = get_hand.get_hand_position(hand_landmarks, frame.shape)
+            #if x is not None:
                 # Display hand position on frame
-                cv2.putText(annotated_frame, f"Hand {i+1}: ({x}, {y})", 
-                          (10, 30 + i*30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+                #cv2.putText(annotated_frame, f"Hand {i+1}: ({x}, {y})",
+                          #(10, 30 + i*30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
 
     inverted_frame = cv2.flip(annotated_frame, 1)
     cv2.imshow('Hand Tracking', inverted_frame)
