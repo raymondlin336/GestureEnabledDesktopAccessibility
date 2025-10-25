@@ -48,9 +48,9 @@ while True:
                 
                 move_cursor(pixel_x, pixel_y)
 
-                print(landmark_distance(wrist.x, wrist.y, middle_tip.x, middle_tip.y))
+                print(f"distance is {landmark_distance(wrist.x, wrist.y, middle_tip.x, middle_tip.y)}")
                 scaled_threshold = scale_threshold(wrist.x, wrist.y, middle_tip.x, middle_tip.y)
-                print(scaled_threshold)
+                print(f"threshold is {scaled_threshold}")
                 
                 if right_click(thumb_tip.x, thumb_tip.y, pinky_tip.x, pinky_tip.y, scaled_threshold):
                     pass
