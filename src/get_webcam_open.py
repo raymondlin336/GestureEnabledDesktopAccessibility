@@ -3,7 +3,7 @@ import numpy as np
 import get_hand
 import time
 from cursor_control import move_cursor
-from mouse_actions import right_click, left_click, double_click
+from mouse_actions import right_click, left_click, double_click, landmark_distance
 
 cap = cv2.VideoCapture(0)
 
@@ -41,12 +41,13 @@ while True:
                 middle_tip = hand_landmarks[12]
                 ring_tip = hand_landmarks[16]
                 pinky_tip = hand_landmarks[20]
+                wrist = hand_landmarks[0]
                 
                 pixel_x = int(index_tip.x * frame.shape[1])
                 pixel_y = int(index_tip.y * frame.shape[0])
                 
                 move_cursor(pixel_x, pixel_y)
-                
+                print(landmark_distance(wrist.x, wrist.y, middle_tip.x, middle_tip.y))
                 if right_click(thumb_tip.x, thumb_tip.y, pinky_tip.x, pinky_tip.y):
                     pass
                 if left_click(thumb_tip.x, thumb_tip.y, ring_tip.x, ring_tip.y):
