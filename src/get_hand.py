@@ -17,13 +17,7 @@ hands = mp_hands.Hands(
 
 def process_hand_frame(frame):
     """
-    Process a frame to detect hand landmarks
-    
-    Args:
-        frame: Input frame from webcam
-        
-    Returns:
-        tuple: (annotated_frame, landmarks_list, handedness_list)
+    Gets landmarks 0 to 21 of the hand from each frame and returns a tuple for annotated_frame, landmarks_list, and handedness_list
     """
     
     rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -35,11 +29,11 @@ def process_hand_frame(frame):
     landmarks_list = []
     handedness_list = []
     
-    # Draw hand landmarks if hands are detected
+
     if results.multi_hand_landmarks:
         for hand_landmarks in results.multi_hand_landmarks:
-            # Draw landmarks
-            mp_drawing.draw_landmarks(
+
+            mp_drawing.draw_landmarks( #landmarks
                 annotated_frame,
                 hand_landmarks,
                 mp_hands.HAND_CONNECTIONS,
@@ -47,33 +41,25 @@ def process_hand_frame(frame):
                 mp_drawing_styles.get_default_hand_connections_style()
             )
             
-            # Store landmarks for movement tracking
-            landmarks_list.append(hand_landmarks.landmark)
+
+            landmarks_list.append(hand_landmarks.landmark) #stores landmarks
     
-    # Get handedness information
-    if results.multi_handedness:
+
+    if results.multi_handedness: #checks hands
         for handedness in results.multi_handedness:
             handedness_list.append(handedness.classification[0].label)
     
     return annotated_frame, landmarks_list, handedness_list
 
-def get_hand_position(landmarks, frame_shape):
+def get_hand_position(landmarks, frame_dimensions):
     """
-    Get hand center position from landmarks
-    
-    Args:
-        landmarks: MediaPipe hand landmarks
-        frame_shape: Shape of the frame (height, width, channels)
-        
-    Returns:
-        tuple: (x, y) coordinates of hand center
+    Uses landmarks to get hand position and returns the (x,y) of the hand's position
     """
     if not landmarks:
         return None, None
-    
-    # Get wrist position (landmark 0)
+
     wrist = landmarks[0]
-    height, width = frame_shape[:2]
+    height, width = frame_dimensions[:2]
     
     x = int(wrist.x * width)
     y = int(wrist.y * height)
@@ -81,5 +67,4 @@ def get_hand_position(landmarks, frame_shape):
     return x, y
 
 def cleanup_hands():
-    """Release MediaPipe resources"""
     hands.close()
