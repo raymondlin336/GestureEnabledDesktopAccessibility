@@ -13,5 +13,10 @@
     "gesture": "fist",
     "function": "play/pause",
     "hexkey": "0xB3"
+  },
+  {
+    "gesture": "open_palm",
+    "function": "play/pause",
+    "hexkey": "0xB3"
   }
 ]

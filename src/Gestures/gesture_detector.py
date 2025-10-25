@@ -4,8 +4,18 @@ from src.Desktop.keystrokes import PressKeys
 from src.Gestures.gesture_classifier import GestureClassifier
 import mediapipe as mp
 
+class Gesture:
+    def __init__(self, gesture, function, hexkey):
+        self.gesture = gesture
+        self.function = function
+        self.hexkey = int(hexkey, 16)
+
+    def execute(self):
+        PressKeys.press_key(self.hexkey)
+        print(self.hexkey)
+
 class GestureDetector:
-    def __init__(self):
+    def __init__(self, gestures_list):
         self.mp_hands = mp.solutions.hands
         self.mp_drawing = mp.solutions.drawing_utils
         self.hand = self.mp_hands.Hands(static_image_mode=False,
@@ -19,6 +29,10 @@ class GestureDetector:
             'thumbs_up': 1,
             'thumbs_down': 1,
         }
+        self.gestures_map = {}
+        for g in gestures_list:
+            gesture, function, hexkey = g["gesture"], g["function"], g["hexkey"]
+            self.gestures_map[gesture] = Gesture(gesture, function, hexkey)
 
     def can_fire(self, key):
         now = time.time()
@@ -28,12 +42,7 @@ class GestureDetector:
         return ok
 
     def action(self, gesture):
-        if gesture == 'thumbs_up':
-            print("Volume up detected")
-            PressKeys.volume_up()
-        elif gesture == 'thumbs_down':
-            print("Volume down detected")
-            PressKeys.volume_down()
+        self.gestures_map[gesture].execute()
 
     def process(self, frame, enabled_hud=True, enable_actions=True):
         img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)

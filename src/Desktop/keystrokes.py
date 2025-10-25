@@ -16,6 +16,7 @@ class PressKeys:
 
     @staticmethod
     def press_key(hexKeyCode):
+        print(hexKeyCode)
         """Simulate pressing a single key by virtual key code."""
         ctypes.windll.user32.keybd_event(hexKeyCode, 0, PressKeys.KEYEVENTF_EXTENDEDKEY, 0)
         ctypes.windll.user32.keybd_event(hexKeyCode, 0, PressKeys.KEYEVENTF_EXTENDEDKEY | PressKeys.KEYEVENTF_KEYUP, 0)
