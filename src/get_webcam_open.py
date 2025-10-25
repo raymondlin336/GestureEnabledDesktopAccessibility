@@ -36,17 +36,13 @@ while True:
         for i, (hand_landmarks, hand_type) in enumerate(zip(landmarks, handedness)):
             if hand_type == "Left":  # "Left" is actually right hand since the webcam is inverted
                 index_tip = hand_landmarks[8]
-                
-                # Get webcam coordinates
+
                 pixel_x = int(index_tip.x * frame.shape[1])
                 pixel_y = int(index_tip.y * frame.shape[0])
-                
 
                 move_cursor(pixel_x, pixel_y)
-                
+                cv2.circle(annotated_frame, (pixel_x, pixel_y), 10, (0, 255, 0), -1) #highlights the right index tip
 
-                cv2.circle(annotated_frame, (pixel_x, pixel_y), 10, (0, 255, 0), -1)
-                
 
                 print(f"Right hand index finger tip: ({pixel_x}, {pixel_y})")
                 break

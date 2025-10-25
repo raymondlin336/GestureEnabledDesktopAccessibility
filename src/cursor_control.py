@@ -17,13 +17,13 @@ def get_screen_size():
 
 def move_cursor(webcam_x, webcam_y):
     """
-    Uses pynput library to control a cursor which takes the coordinates of index 8 of the right hand (right index finger tip)
+    Uses pynput library to control a cursor which takes the coordinates of index 8 of the right hand (right index fingertip)
     webcam_x -> (int)
     webcam_y -> (int)
     """
 
     screen_width, screen_height = get_screen_size()
-    screen_x = int((webcam_x / 640) * screen_width)
+    screen_x = int(screen_width - ((webcam_x / 640) * screen_width))
     screen_y = int((webcam_y / 480) * screen_height)
     mouse = Controller()
     mouse.position = (screen_x, screen_y)
