@@ -5,11 +5,13 @@ from pynput.mouse import Button, Controller
 mouse = Controller()
 last_click_time = 0
 click_delay = 0.5
+threshold = 0.01
+
 
 def landmark_distance(landmarkAx, landmarkAy, landmarkBx, landmarkBy):
     return math.sqrt((landmarkAx - landmarkBx) ** 2 + (landmarkAy - landmarkBy) ** 2)
 
-def right_click(thumbX, thumbY, pinkyX, pinkyY, touching_threshold = 0.15, holding_time=0.2):
+def right_click(thumbX, thumbY, pinkyX, pinkyY, touching_threshold = threshold, holding_time=0.2):
     global last_click_time
     distance = landmark_distance(thumbX, thumbY, pinkyX, pinkyY)
 
@@ -21,7 +23,7 @@ def right_click(thumbX, thumbY, pinkyX, pinkyY, touching_threshold = 0.15, holdi
             return True
     return False
 
-def left_click(thumbX, thumbY, ringX, ringY, touching_threshold = 0.15, holding_time=0.2):
+def left_click(thumbX, thumbY, ringX, ringY, touching_threshold = threshold, holding_time=0.2):
     global last_click_time
     distance = landmark_distance(thumbX, thumbY, ringX, ringY)
 
@@ -33,7 +35,7 @@ def left_click(thumbX, thumbY, ringX, ringY, touching_threshold = 0.15, holding_
             return True
     return False
 
-def double_click(thumbX, thumbY, middleX, middleY, touching_threshold = 0.15, holding_time=0.2):
+def double_click(thumbX, thumbY, middleX, middleY, touching_threshold = threshold, holding_time=0.2):
     global last_click_time
     distance = landmark_distance(thumbX, thumbY, middleX, middleY)
 
