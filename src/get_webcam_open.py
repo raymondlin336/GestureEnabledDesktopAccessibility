@@ -35,21 +35,26 @@ while True:
     # Index 8 of right hand (index finger tip) 
     if landmarks and handedness:
         for i, (hand_landmarks, hand_type) in enumerate(zip(landmarks, handedness)):
-            if hand_type == "Left":  # "Left" is right hand in real life but mirrored from the webcam
+            if hand_type == "Left":
                 index_tip = hand_landmarks[8]
+                thumb_tip = hand_landmarks[4]
+                middle_tip = hand_landmarks[12]
+                ring_tip = hand_landmarks[16]
+                pinky_tip = hand_landmarks[20]
                 
-                # Webcam coordinates
                 pixel_x = int(index_tip.x * frame.shape[1])
                 pixel_y = int(index_tip.y * frame.shape[0])
                 
-
                 move_cursor(pixel_x, pixel_y)
                 
-               
-                cv2.circle(annotated_frame, (pixel_x, pixel_y), 10, (0, 255, 0), -1)
-
+                if right_click(thumb_tip.x, thumb_tip.y, pinky_tip.x, pinky_tip.y):
+                    pass
+                if left_click(thumb_tip.x, thumb_tip.y, ring_tip.x, ring_tip.y):
+                    pass
+                if double_click(thumb_tip.x, thumb_tip.y, middle_tip.x, middle_tip.y):
+                    pass
                 
-                print(f"Right hand index finger tip: ({pixel_x}, {pixel_y})")
+                cv2.circle(annotated_frame, (pixel_x, pixel_y), 10, (0, 255, 0), -1)
                 break
 
 
