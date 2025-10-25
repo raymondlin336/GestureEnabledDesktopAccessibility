@@ -68,6 +68,7 @@ while True:
 
                 left_scaled_threshold = left_scale_threshold(wrist.x, wrist.y, middle_tip.x, middle_tip.y)
                 left_hand_drag(thumb_tip.x, thumb_tip.y, index_tip.x, index_tip.y, middle_tip.x, middle_tip.y, ring_tip.x, ring_tip.y, pinky_tip.x, pinky_tip.y, left_scaled_threshold)
+                cv2.circle(annotated_frame, (pixel_x, pixel_y), 10, (255, 0, 0), -1)
 
 
 
