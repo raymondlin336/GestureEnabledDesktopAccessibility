@@ -1,8 +1,8 @@
 import json
 
 def load_keystrokes():
-    default_path = "Settings/default_mappings.json"
-    user_path = "Settings/user_mappings.json"
+    default_path = "settings/default_mappings.json"
+    user_path = "settings/user_mappings.json"
     try:
         with open(user_path, 'r') as file:
             data = json.load(file)
