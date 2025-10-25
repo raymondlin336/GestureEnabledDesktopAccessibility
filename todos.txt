@@ -1,3 +1,6 @@
 1. Fix fingers detection so thumbs down gets triggered more often instead of being mistaken as multiple fingers [done]
 2. Remove all other unnessesary things for now, leave palm close and open for future [done]
 3. Segmentate different classes and files [done]
+4. Implement play / pause
+5. Implement using json array to configure default mappings
+6. Implement prioritizing user configs for mappings

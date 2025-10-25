@@ -1,7 +1,7 @@
 import time
 import cv2
-from keystrokes import PressKeys
-from gesture_classifier import GestureClassifier
+from src.Desktop.keystrokes import PressKeys
+from src.Gestures.gesture_classifier import GestureClassifier
 import mediapipe as mp
 
 class GestureDetector:
