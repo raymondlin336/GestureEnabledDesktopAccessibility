@@ -1,10 +1,9 @@
 import json
 import sys
 import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
+from tkinter import ttk, messagebox
 from pathlib import Path
 
-# ... (imports and class header unchanged)
 
 class GesturePanel(tk.Tk):
     def __init__(self, gestures, default_actions, config_path: str):
