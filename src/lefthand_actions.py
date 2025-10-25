@@ -26,21 +26,50 @@ def all_fingers_distance(landmarkAx, landmarkAy, landmarkBx, landmarkBy, landmar
             x1, y1 = points[i]
             x2, y2 = points[j]
             distance += math.sqrt((x1-x2)**2 + (y1-y2)**2)
-    print(distance)
+
     return distance
 
 def set_right_hand_left_click_status(status):
     global right_hand_left_click_active
     right_hand_left_click_active = status
 
-def left_hand_drag(thumbX, thumbY, indexX, indexY, middleX, middleY, ringX, ringY, pinkyX, pinkyY, scaled_threshold = default_threshold):
-    global is_dragging, right_hand_left_click_active
-    distance = all_fingers_distance(thumbX, thumbY, indexX, indexY, middleX, middleY, ringX, ringY, pinkyX, pinkyY)
+def detect_fist(landmarks):
+    """Detect if hand is closed (fist)"""
+    if not landmarks:
+        return False
     
+    # Get finger tip landmarks
+    thumb_tip = landmarks[4]
+    index_tip = landmarks[8]
+    middle_tip = landmarks[12]
+    ring_tip = landmarks[16]
+    pinky_tip = landmarks[20]
+    
+    # Get finger MCP (knuckle) landmarks
+    thumb_mcp = landmarks[3]
+    index_mcp = landmarks[5]
+    middle_mcp = landmarks[9]
+    ring_mcp = landmarks[13]
+    pinky_mcp = landmarks[17]
+    
+    # Check if fingers are down (tip below MCP)
+    fingers_down = []
+    fingers_down.append(thumb_tip.x < thumb_mcp.x)  # Thumb
+    fingers_down.append(index_tip.y > index_mcp.y)   # Index
+    fingers_down.append(middle_tip.y > middle_mcp.y) # Middle
+    fingers_down.append(ring_tip.y > ring_mcp.y)    # Ring
+    fingers_down.append(pinky_tip.y > pinky_mcp.y)  # Pinky
+    
+    # Fist if 4 or more fingers are down
+    return sum(fingers_down) >= 4
 
-    if distance <= scaled_threshold:
+def left_hand_drag(landmarks):
+    global is_dragging, right_hand_left_click_active
+    
+    is_fist = detect_fist(landmarks)
+    
+    if is_fist:
         if not is_dragging:
-            print("drag")
             mouse.press(Button.left)
             is_dragging = True
         return True
