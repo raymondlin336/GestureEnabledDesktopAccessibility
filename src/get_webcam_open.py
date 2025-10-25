@@ -3,6 +3,7 @@ import numpy as np
 import get_hand
 import time
 from cursor_control import move_cursor
+from mouse_actions import right_click, left_click, double_click
 
 cap = cv2.VideoCapture(0)
 
@@ -31,19 +32,23 @@ while True:
 
     annotated_frame, landmarks, handedness = get_hand.process_hand_frame(frame)
 
-    # Index 8 of right hand (index finger tip) to control the mouse
+    # Index 8 of right hand (index finger tip) 
     if landmarks and handedness:
         for i, (hand_landmarks, hand_type) in enumerate(zip(landmarks, handedness)):
-            if hand_type == "Left":  # "Left" is actually right hand since the webcam is inverted
+            if hand_type == "Left":  # "Left" is right hand in real life but mirrored from the webcam
                 index_tip = hand_landmarks[8]
-
+                
+                # Webcam coordinates
                 pixel_x = int(index_tip.x * frame.shape[1])
                 pixel_y = int(index_tip.y * frame.shape[0])
+                
 
                 move_cursor(pixel_x, pixel_y)
-                cv2.circle(annotated_frame, (pixel_x, pixel_y), 10, (0, 255, 0), -1) #highlights the right index tip
+                
+               
+                cv2.circle(annotated_frame, (pixel_x, pixel_y), 10, (0, 255, 0), -1)
 
-
+                
                 print(f"Right hand index finger tip: ({pixel_x}, {pixel_y})")
                 break
 
@@ -51,10 +56,10 @@ while True:
     inverted_frame = cv2.flip(annotated_frame, 1)
     cv2.imshow('Hand Tracking', inverted_frame)
 
-
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+  
+    if cv2.waitKey(1) & 0xFF == ord('q'): #exit with q key
         break
 
 cap.release()
-get_hand.cleanup_hands()
+get_hand.cleanup_hands() 
 cv2.destroyAllWindows()
