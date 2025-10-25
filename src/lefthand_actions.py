@@ -26,7 +26,7 @@ def all_fingers_distance(landmarkAx, landmarkAy, landmarkBx, landmarkBy, landmar
             x1, y1 = points[i]
             x2, y2 = points[j]
             distance += math.sqrt((x1-x2)**2 + (y1-y2)**2)
-
+    print(distance)
     return distance
 
 def set_right_hand_left_click_status(status):
@@ -40,6 +40,7 @@ def left_hand_drag(thumbX, thumbY, indexX, indexY, middleX, middleY, ringX, ring
 
     if distance <= scaled_threshold:
         if not is_dragging:
+            print("drag")
             mouse.press(Button.left)
             is_dragging = True
         return True

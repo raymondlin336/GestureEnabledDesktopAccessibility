@@ -59,6 +59,7 @@ while True:
                 cv2.circle(annotated_frame, (pixel_x, pixel_y), 10, (0, 255, 0), -1)
                 
             elif hand_type == "Right": #"right" is left hand in real life (inverted webcam)
+
                 index_tip = hand_landmarks[8]
                 thumb_tip = hand_landmarks[4]
                 middle_tip = hand_landmarks[12]
