@@ -4,25 +4,25 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from pathlib import Path
 
-
 class GesturePanel(tk.Tk):
-    def __init__(self, gestures, default_actions, config_path: str):
+    def __init__(self, mappings_path: Path):
         super().__init__()
         self.title("Gesture Key Mapper")
         self.geometry("560x360")
         self.minsize(520, 360)
 
-        self.gestures = list(gestures)
-        self.defaults = dict(default_actions)
-        self.config_path = config_path
+        self.mappings_path = mappings_path
+        self.mappings_data = self._load_mappings(mappings_path)
+
+        #build internal structures dicts and stuff
+        self.gestures = [entry["gesture"] for entry in self.mappings_data]
+        self.defaults = {entry["gesture"]: entry["function"] for entry in self.mappings_data}
+        self.common_actions = {entry["function"]: entry["hexkey"] for entry in self.mappings_data}
+        self.choices = sorted(list(self.common_actions.keys()))
 
         self.vars: dict[str, tk.StringVar] = {}
 
-        # Precompute the choices from the dict KEYS
-        # (sorted for nicer UX; remove sorted() if you want original insertion order)
-        self.choices = [""] + sorted(list(Common_Actions.keys()))
-
-        # Main Layout
+        # start ui
         container = ttk.Frame(self, padding=12)
         container.pack(fill="both", expand=True)
 
@@ -30,18 +30,15 @@ class GesturePanel(tk.Tk):
                            font=("TkDefaultFont", 11, "bold"))
         header.pack(anchor="w", pady=(0, 8))
 
-        # Table
         table = ttk.Frame(container)
         table.pack(fill="both", expand=True)
-
         ttk.Label(table, text="Gesture", font=("TkDefaultFont", 10, "bold")).grid(
             row=0, column=0, sticky="w", padx=(0, 8), pady=(0, 6)
         )
-        ttk.Label(table, text="Key / Action", font=("TkDefaultFont", 10, "bold")).grid(
+        ttk.Label(table, text="Function", font=("TkDefaultFont", 10, "bold")).grid(
             row=0, column=1, sticky="w"
         )
 
-        # Rows
         for r, g in enumerate(self.gestures, start=1):
             ttk.Label(table, text=g).grid(row=r, column=0, sticky="w", padx=(0, 8), pady=4)
 
@@ -53,117 +50,74 @@ class GesturePanel(tk.Tk):
             table.grid_columnconfigure(1, weight=1)
             row_frame.grid_columnconfigure(0, weight=1)
 
-            # Combobox
-            combo = ttk.Combobox(row_frame, values=self.choices, state="readonly", textvariable=sv)
+            combo = ttk.Combobox(row_frame, values=[""] + self.choices,
+                                 state="readonly", textvariable=sv)
             combo.grid(row=0, column=0, sticky="ew")
-
-            # Make sure default is actually one of the keys (or blank)
-            default_val = self.defaults.get(g, "")
-            combo.set(default_val if default_val in self.choices else "")
-
-            combo.bind("<<ComboboxSelected>>",
-                       lambda e, gest=g, cb=combo: self._apply_common_action(gest, cb.get()))
+            combo.set(self.defaults.get(g, ""))
 
         # Buttons
         btns = ttk.Frame(container)
         btns.pack(fill="x", pady=(10, 0))
 
-        save_btn = ttk.Button(btns, text="Save", command=self.save_config)
-        load_btn = ttk.Button(btns, text="Load", command=self.load_config)
-        reset_btn = ttk.Button(btns, text="Reset to Defaults", command=self.reset_to_defaults)
-        start_btn = ttk.Button(btns, text="Start", command=self.finish_and_close)
+        ttk.Button(btns, text="Save to config file", command=self.save_config).pack(side="left")
+        ttk.Button(btns, text="Reset", command=self.reset_to_defaults).pack(side="left", padx=6)
+        ttk.Button(btns, text="Close", command=self.finish_and_close).pack(side="right")
 
-        save_btn.pack(side="left")
-        load_btn.pack(side="left", padx=6)
-        reset_btn.pack(side="left")
-        start_btn.pack(side="right")
 
-    def _apply_common_action(self, gesture: str, val: str):
-        if gesture in self.vars:
-            self.vars[gesture].set(val)
+    def _load_mappings(self, path: Path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            assert isinstance(data, list)
+            for entry in data:
+                assert all(k in entry for k in ("gesture", "function", "hexkey"))
+            return data
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to read {path}:\n{e}")
+            self.destroy()
+            sys.exit(1)
 
     def get_mapping(self) -> dict[str, str]:
-        """Return gesture -> selected action NAME (key in Common_Actions)."""
-        result = {}
-        for gesture in self.gestures:
-            value = self.vars[gesture].get()
-            value = value.strip() if isinstance(value, str) else str(value).strip()
-            result[gesture] = value
-        return result
+        """Return gesture -> selected function name."""
+        return {g: self.vars[g].get().strip() for g in self.gestures}
 
-    def get_resolved_mapping(self) -> dict[str, object]:
-        """
-        Return gesture -> resolved code(s) from Common_Actions.
-        Values can be a string like '0xAF' or a list like ['0x5B','0xA2','0x25'].
-        Unknown/blank actions map to ''.
-        """
-        names = self.get_mapping()
-        return {g: Common_Actions.get(name, "") for g, name in names.items()}
+    def get_resolved_mapping(self) -> dict[str, list[str]]:
+        """Return gesture -> hex key(s) from common_actions."""
+        mapping = self.get_mapping()
+        return {g: self.common_actions.get(func, []) for g, func in mapping.items()}
 
     def reset_to_defaults(self):
         for g in self.gestures:
-            dv = self.defaults.get(g, "")
-            self.vars[g].set(dv if dv in self.choices else "")
+            self.vars[g].set(self.defaults.get(g, ""))
 
     def save_config(self):
-        try:
-            with open(self.config_path, "w", encoding="utf-8") as f:
-                json.dump(self.get_mapping(), f, indent=2)
-            messagebox.showinfo("Saved", f"Saved to:\n{self.config_path}")
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
-
-    def load_config(self):
-        try:
-            p = Path(self.config_path)
-            if not p.exists():
-                messagebox.showwarning("Missing", f"No file at:\n{p}")
-                return
-            data = json.load(open(p, "r", encoding="utf-8"))
-            for g, v in data.items():
-                if g in self.vars:
-                    self.vars[g].set(v if v in self.choices else "")
-            messagebox.showinfo("Loaded", f"Loaded from:\n{p}")
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
+        """Save to user_mappings.json"""
+        user_path = self.mappings_path.parent / "user_mappings.json"
+        result = []
+        mapping = self.get_mapping()
+        for g in self.gestures:
+            func = mapping[g]
+            hexkey = self.common_actions.get(func, [])
+            result.append({"gesture": g, "function": func, "hexkey": hexkey})
+        with open(user_path, "w", encoding="utf-8") as f:
+            json.dump(result, f, indent=2)
+        messagebox.showinfo("Saved", f"Saved to {user_path}")
 
     def finish_and_close(self):
-        print("Selected (names):", self.get_mapping())
-        print("Selected (codes):", self.get_resolved_mapping())
+        print("Current mappings (functions):", self.get_mapping())
+        print("Resolved mappings (hex):", self.get_resolved_mapping())
         self.destroy()
 
 
-
-
 if __name__ == "__main__":
-    #Preset variables
-    Gestures = [
-        "fist",
-        "thumbs_up",
-        "thumps_down",
-        "swipe_right",
-        "swipe_left",
-    ]
-
-    Common_Actions = {
-        "volume_up" : "0xAF",
-        "volume_down" : "0xAE",
-        "mute_toggle" : "0xAD",
-        "play_pause" : "0xB3",
-        "next_track" : "0xB0",
-        "prev_track" : "0xB1",
-        "switch_to_right_desktop" : ["0x5B", "0xA2", "0x25"],
-        "switch_to_left_desktop" : ["0x5B", "0xA2", "0x27"],
-    }
-
-    #Find path next to this file
     base_dir = Path(__file__).resolve().parent
-    config_path = base_dir / "config.json"
+    default_path = base_dir / "settings" / "default_mappings.json"
+    user_path = base_dir / "settings" / "user_mappings.json"
 
-    if not config_path.exists():
-        with open(config_path, "w", encoding="utf-8") as f:
-            json.dump(Default_Actions, f, indent=2)
-        print(f"Created new config file at {config_path}")
+    chosen_path = user_path if user_path.exists() else default_path
 
-    app = GesturePanel(Gestures, Default_Actions, str(config_path))
+    if not default_path.exists():
+        sys.exit("Error: default_mappings.json not found.")
+
+    app = GesturePanel(chosen_path)
     app.mainloop()
