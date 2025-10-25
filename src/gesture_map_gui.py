@@ -5,20 +5,19 @@ from tkinter import ttk, messagebox
 from pathlib import Path
 
 class GesturePanel(tk.Tk):
-    def __init__(self, mappings_path: Path):
+    def __init__(self, mappings_path: Path, common_actions: dict[str, object]):
         super().__init__()
         self.title("Gesture Key Mapper")
         self.geometry("560x360")
         self.minsize(520, 360)
 
+        # build internal structures dicts and stuff
         self.mappings_path = mappings_path
         self.mappings_data = self._load_mappings(mappings_path)
-
-        #build internal structures dicts and stuff
         self.gestures = [entry["gesture"] for entry in self.mappings_data]
         self.defaults = {entry["gesture"]: entry["function"] for entry in self.mappings_data}
-        self.common_actions = {entry["function"]: entry["hexkey"] for entry in self.mappings_data}
-        self.choices = sorted(list(self.common_actions.keys()))
+        self.common_actions = dict(common_actions)
+        self.choices = [""] + sorted(self.common_actions.keys())
 
         self.vars: dict[str, tk.StringVar] = {}
 
@@ -50,8 +49,7 @@ class GesturePanel(tk.Tk):
             table.grid_columnconfigure(1, weight=1)
             row_frame.grid_columnconfigure(0, weight=1)
 
-            combo = ttk.Combobox(row_frame, values=[""] + self.choices,
-                                 state="readonly", textvariable=sv)
+            combo = ttk.Combobox(row_frame, values=self.choices, state="readonly", textvariable=sv)
             combo.grid(row=0, column=0, sticky="ew")
             combo.set(self.defaults.get(g, ""))
 
@@ -114,10 +112,21 @@ if __name__ == "__main__":
     default_path = base_dir / "settings" / "default_mappings.json"
     user_path = base_dir / "settings" / "user_mappings.json"
 
+    Common_Actions = {
+        "volume_up": "0xAF",
+        "volume_down": "0xAE",
+        "mute_toggle": "0xAD",
+        "play_pause": "0xB3",
+        "next_track": "0xB0",
+        "prev_track": "0xB1",
+        "switch_to_right_desktop": ["0x5B", "0xA2", "0x25"],
+        "switch_to_left_desktop": ["0x5B", "0xA2", "0x27"],
+    }
+
     chosen_path = user_path if user_path.exists() else default_path
 
     if not default_path.exists():
         sys.exit("Error: default_mappings.json not found.")
 
-    app = GesturePanel(chosen_path)
+    app = GesturePanel(chosen_path, Common_Actions)
     app.mainloop()
