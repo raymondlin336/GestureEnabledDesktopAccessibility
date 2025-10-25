@@ -57,15 +57,15 @@ class GesturePanel(tk.Tk):
         btns = ttk.Frame(container)
         btns.pack(fill="x", pady=(10, 0))
 
-        # save_btn = ttk.Button(btns, text="Save", command=self.save_config)
-        # load_btn = ttk.Button(btns, text="Load", command=self.load_config)
-        # reset_btn = ttk.Button(btns, text="Reset to Defaults", command=self.reset_to_defaults)
-        # start_btn = ttk.Button(btns, text="Start", command=self.finish_and_close)
+        save_btn = ttk.Button(btns, text="Save", command=self.save_config)
+        load_btn = ttk.Button(btns, text="Load", command=self.load_config)
+        reset_btn = ttk.Button(btns, text="Reset to Defaults", command=self.reset_to_defaults)
+        start_btn = ttk.Button(btns, text="Start", command=self.finish_and_close)
 
-        # save_btn.pack(side="left")
-        # load_btn.pack(side="left", padx=6)
-        # reset_btn.pack(side="left")
-        # start_btn.pack(side="right")
+        save_btn.pack(side="left")
+        load_btn.pack(side="left", padx=6)
+        reset_btn.pack(side="left")
+        start_btn.pack(side="right")
 
     def _apply_common_action(self, gesture: str, val: str):
         if gesture in self.vars:
@@ -105,19 +105,14 @@ if __name__ == "__main__":
         "Palm Closed": "",
     }
 
-    Common_Actions = [
-        "volume_up",
-        "volume_down",
-        "mute_toggle",
-        "play_pause",
-        "next_track",
-        "prev_track",
-        "task_manager",
-        "brightness_up",
-        "brightness_down",
-        "screenshot",
-        "custom:ctrl+alt+T",
-    ]
+    Common_Actions = {
+        "volume_up" : "0xAF",
+        "volume_down" : "0xAE",
+        "mute_toggle" : "0xAD",
+        "play_pause" : "0xB3",
+        "next_track" : "0xB0",
+        "prev_track" : "0xB1",
+    }
 
     #Find path next to this file
     base_dir = Path(__file__).resolve().parent
