@@ -2,11 +2,12 @@ import cv2
 import mediapipe as mp
 import numpy as np
 
+
 mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 
-# Create hands solution
+
 hands = mp_hands.Hands(
     static_image_mode=False,
     max_num_hands=2,
@@ -22,18 +23,17 @@ def process_hand_frame(frame):
         frame: Input frame from webcam
         
     Returns:
-        tuple: (annotated_frame, landmarks_list)
+        tuple: (annotated_frame, landmarks_list, handedness_list)
     """
-    # Convert BGR to RGB
-    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     
-    # Process the frame
+    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
     results = hands.process(rgb_frame)
     
-    # Create annotated frame
     annotated_frame = frame.copy()
     
     landmarks_list = []
+    handedness_list = []
     
     # Draw hand landmarks if hands are detected
     if results.multi_hand_landmarks:
@@ -50,7 +50,12 @@ def process_hand_frame(frame):
             # Store landmarks for movement tracking
             landmarks_list.append(hand_landmarks.landmark)
     
-    return annotated_frame, landmarks_list
+    # Get handedness information
+    if results.multi_handedness:
+        for handedness in results.multi_handedness:
+            handedness_list.append(handedness.classification[0].label)
+    
+    return annotated_frame, landmarks_list, handedness_list
 
 def get_hand_position(landmarks, frame_shape):
     """

@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import get_hand
+import time
 
 
 cap = cv2.VideoCapture(0)
@@ -20,6 +21,7 @@ else:
     print(f"FPS: {cap.get(cv2.CAP_PROP_FPS)}")
 
 while True:
+
     ret, frame = cap.read()
     
     if not ret:
@@ -28,15 +30,24 @@ while True:
     
     
 
-    annotated_frame, landmarks = get_hand.process_hand_frame(frame)
+    annotated_frame, landmarks, handedness = get_hand.process_hand_frame(frame)
 
-    #if landmarks:
-        #for i, hand_landmarks in enumerate(landmarks):
-            #x, y = get_hand.get_hand_position(hand_landmarks, frame.shape)
-            #if x is not None:
-                # Display hand position on frame
-                #cv2.putText(annotated_frame, f"Hand {i+1}: ({x}, {y})",
-                          #(10, 30 + i*30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+    # Index 8 of right hand (index finger tip)
+    if landmarks and handedness:
+        for i, (hand_landmarks, hand_type) in enumerate(zip(landmarks, handedness)):
+            if hand_type == "Left":
+
+                index_tip = hand_landmarks[8]
+                
+
+                pixel_x = int(index_tip.x * frame.shape[1])
+                pixel_y = int(index_tip.y * frame.shape[0])
+
+                cv2.circle(annotated_frame, (pixel_x, pixel_y), 10, (0, 255, 0), -1)
+                
+                print(f"Right hand index finger tip: ({pixel_x}, {pixel_y})")
+                break
+
 
     inverted_frame = cv2.flip(annotated_frame, 1)
     cv2.imshow('Hand Tracking', inverted_frame)
