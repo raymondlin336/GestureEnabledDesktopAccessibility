@@ -80,26 +80,39 @@ class GesturePanel(tk.Tk):
         return {g: self.vars[g].get().strip() for g in self.gestures}
 
     def get_resolved_mapping(self) -> dict[str, list[str]]:
-        """Return gesture -> hex key(s) from common_actions."""
         mapping = self.get_mapping()
-        return {g: self.common_actions.get(func, []) for g, func in mapping.items()}
+        resolved = {}
+        for g, func in mapping.items():
+            raw = self.common_actions.get(func, [])
+            if isinstance(raw, str):
+                resolved[g] = [raw]
+            elif isinstance(raw, list):
+                resolved[g] = raw
+            else:
+                resolved[g] = []
+        return resolved
 
     def reset_to_defaults(self):
         for g in self.gestures:
             self.vars[g].set(self.defaults.get(g, ""))
 
     def save_config(self):
-        """Save to user_mappings.json"""
-        user_path = self.mappings_path.parent / "user_mappings.json"
+        users_path = self.mappings_path.parent / "user_mappings.json"
         result = []
         mapping = self.get_mapping()
         for g in self.gestures:
             func = mapping[g]
-            hexkey = self.common_actions.get(func, [])
+            raw = self.common_actions.get(func, [])
+            if isinstance(raw, str):
+                hexkey = [raw]
+            elif isinstance(raw, list):
+                hexkey = raw
+            else:
+                hexkey = []
             result.append({"gesture": g, "function": func, "hexkey": hexkey})
-        with open(user_path, "w", encoding="utf-8") as f:
+        with open(users_path, "w", encoding="utf-8") as f:
             json.dump(result, f, indent=2)
-        messagebox.showinfo("Saved", f"Saved to {user_path}")
+        messagebox.showinfo("Saved", f"Saved to {users_path}")
 
     def finish_and_close(self):
         print("Current mappings (functions):", self.get_mapping())
@@ -113,14 +126,14 @@ if __name__ == "__main__":
     user_path = base_dir / "settings" / "user_mappings.json"
 
     Common_Actions = {
-        "volume_up": "0xAF",
-        "volume_down": "0xAE",
-        "mute_toggle": "0xAD",
-        "play_pause": "0xB3",
-        "next_track": "0xB0",
-        "prev_track": "0xB1",
-        "switch_to_right_desktop": ["0x5B", "0xA2", "0x25"],
-        "switch_to_left_desktop": ["0x5B", "0xA2", "0x27"],
+        "volume_up": ["0xAF"],
+        "volume_down": ["0xAE"],
+        "mute_toggle": ["0xAD"],
+        "play/pause": ["0xB3"],
+        "next_track": ["0xB0"],
+        "prev_track": ["0xB1"],
+        "swipe_right_virtual_desktop": ["0x5B", "0xA2", "0x25"],
+        "swipe_left_virtual_desktop": ["0x5B", "0xA2", "0x27"],
     }
 
     chosen_path = user_path if user_path.exists() else default_path
