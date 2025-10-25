@@ -1,0 +1,27 @@
+[
+  {
+    "gesture": "thumbs_up",
+    "function": "volume_up",
+    "hexkey": ["0xAF"]
+  },
+  {
+    "gesture": "thumbs_down",
+    "function": "volume_down",
+    "hexkey": ["0xAE"]
+  },
+  {
+    "gesture": "fist",
+    "function": "play/pause",
+    "hexkey": ["0xB3"]
+  },
+  {
+    "gesture": "swipe_right",
+    "function": "swipe_right_virtual_desktop",
+    "hexkey": ["0x5B", "0xA2", "0x25"]
+  },
+  {
+    "gesture": "swipe_left",
+    "function": "swipe_left_virtual_desktop",
+    "hexkey": ["0x5B", "0xA2", "0x27"]
+  }
+]
