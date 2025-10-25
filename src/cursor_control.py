@@ -2,6 +2,11 @@ from pynput.mouse import Controller
 import subprocess
 
 
+position_history = []
+past_positions_max_amount = 5
+mouse = Controller()
+
+#getting screen size
 def get_screen_size():
     try:
         result = subprocess.run(['xrandr'], capture_output=True, text=True)
@@ -13,17 +18,28 @@ def get_screen_size():
                 return width, height
     except:
         pass
-    return 1920, 1080
+    return 1920, 1080 
 
 def move_cursor(webcam_x, webcam_y):
     """
-    Uses pynput library to control a cursor which takes the coordinates of index 8 of the right hand (right index fingertip)
-    webcam_x -> (int)
-    webcam_y -> (int)
+    Simple cursor control - maps webcam to screen using pynput
+
+        webcam_x (int): X coordinate in webcam (0-640)
+        webcam_y (int): Y coordinate in webcam (0-480)
     """
 
     screen_width, screen_height = get_screen_size()
-    screen_x = int(screen_width - ((webcam_x / 640) * screen_width))
+    
+    screen_x = int(((640 - webcam_x) / 640) * screen_width)
     screen_y = int((webcam_y / 480) * screen_height)
-    mouse = Controller()
-    mouse.position = (screen_x, screen_y)
+    
+
+    position_history.append((screen_x, screen_y))
+    
+    if len(position_history) > past_positions_max_amount:
+        position_history.pop(0)
+
+    avg_x = sum(pos[0] for pos in position_history) / len(position_history)
+    avg_y = sum(pos[1] for pos in position_history) / len(position_history)
+    
+    mouse.position = (int(avg_x), int(avg_y))
