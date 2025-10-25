@@ -37,7 +37,8 @@ def left_hand_drag(thumbX, thumbY, indexX, indexY, middleX, middleY, ringX, ring
     global is_dragging, right_hand_left_click_active
     distance = all_fingers_distance(thumbX, thumbY, indexX, indexY, middleX, middleY, ringX, ringY, pinkyX, pinkyY)
     
-    if distance <= scaled_threshold and right_hand_left_click_active:
+
+    if distance <= scaled_threshold:
         if not is_dragging:
             mouse.press(Button.left)
             is_dragging = True
