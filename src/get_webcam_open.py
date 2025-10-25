@@ -3,7 +3,7 @@ import numpy as np
 import get_hand
 import time
 from cursor_control import move_cursor
-from mouse_actions import right_click, left_click, double_click, landmark_distance
+from mouse_actions import right_click, left_click, double_click, scale_threshold, landmark_distance
 
 cap = cv2.VideoCapture(0)
 
@@ -47,12 +47,16 @@ while True:
                 pixel_y = int(index_tip.y * frame.shape[0])
                 
                 move_cursor(pixel_x, pixel_y)
+
                 print(landmark_distance(wrist.x, wrist.y, middle_tip.x, middle_tip.y))
-                if right_click(thumb_tip.x, thumb_tip.y, pinky_tip.x, pinky_tip.y):
+                scaled_threshold = scale_threshold(wrist.x, wrist.y, middle_tip.x, middle_tip.y)
+                print(scaled_threshold)
+                
+                if right_click(thumb_tip.x, thumb_tip.y, pinky_tip.x, pinky_tip.y, scaled_threshold):
                     pass
-                if left_click(thumb_tip.x, thumb_tip.y, ring_tip.x, ring_tip.y):
+                if left_click(thumb_tip.x, thumb_tip.y, ring_tip.x, ring_tip.y, scaled_threshold):
                     pass
-                if double_click(thumb_tip.x, thumb_tip.y, middle_tip.x, middle_tip.y):
+                if double_click(thumb_tip.x, thumb_tip.y, middle_tip.x, middle_tip.y, scaled_threshold):
                     pass
                 
                 cv2.circle(annotated_frame, (pixel_x, pixel_y), 10, (0, 255, 0), -1)
