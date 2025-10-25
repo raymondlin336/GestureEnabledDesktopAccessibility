@@ -3,8 +3,8 @@ import numpy as np
 import get_hand
 import time
 from cursor_control import move_cursor
-from righthand_actions import right_click, left_click, double_click, right_scale_threshold, landmark_distance
-from lefthand_actions import left_hand_drag, left_scale_threshold
+from righthand_actions import right_click, left_click, double_click, scale_threshold, landmark_distance
+from lefthand_actions import left_hand_drag, left_scale_threshold, left_hand_scroll, is_left_hand_scrolling
 
 cap = cv2.VideoCapture(0)                                                                                                                                                                                                                                                                                                                                                           
 
@@ -46,14 +46,14 @@ while True:
                 
                 move_cursor(pixel_x, pixel_y)
 
-                right_scaled_threshold = right_scale_threshold(wrist.x, wrist.y, middle_tip.x, middle_tip.y)
+                scaled_threshold = scale_threshold(wrist.x, wrist.y, middle_tip.x, middle_tip.y)
 
                 
-                if right_click(thumb_tip.x, thumb_tip.y, pinky_tip.x, pinky_tip.y, right_scaled_threshold):
+                if right_click(thumb_tip.x, thumb_tip.y, pinky_tip.x, pinky_tip.y, scaled_threshold):
                     pass
-                if left_click(thumb_tip.x, thumb_tip.y, ring_tip.x, ring_tip.y, right_scaled_threshold):
+                if left_click(thumb_tip.x, thumb_tip.y, ring_tip.x, ring_tip.y, scaled_threshold):
                     pass
-                if double_click(thumb_tip.x, thumb_tip.y, middle_tip.x, middle_tip.y, right_scaled_threshold):
+                if double_click(thumb_tip.x, thumb_tip.y, middle_tip.x, middle_tip.y, scaled_threshold):
                     pass
                 
                 cv2.circle(annotated_frame, (pixel_x, pixel_y), 10, (0, 255, 0), -1)
@@ -67,9 +67,17 @@ while True:
                 pinky_tip = hand_landmarks[20]
                 wrist = hand_landmarks[0]
 
+                pixel_x = int(index_tip.x * frame.shape[1])
+                pixel_y = int(index_tip.y * frame.shape[0])
+                
                 left_hand_drag(hand_landmarks)
-
-
+                left_hand_scroll(hand_landmarks, frame.shape[0])
+                
+                #left hand visuals
+                if is_left_hand_scrolling():
+                    cv2.circle(annotated_frame, (pixel_x, pixel_y), 15, (0, 0, 255), -1) 
+                else:
+                    cv2.circle(annotated_frame, (pixel_x, pixel_y), 10, (255, 0, 0), -1)
 
 
     inverted_frame = cv2.flip(annotated_frame, 1) #invert cam
