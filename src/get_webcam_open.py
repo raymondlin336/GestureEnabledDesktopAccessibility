@@ -3,8 +3,8 @@ import numpy as np
 import get_hand
 import time
 from cursor_control import move_cursor
-from righthand_actions import right_click, left_click, double_click, scale_threshold, landmark_distance
-from lefthand_actions import left_hand_drag
+from righthand_actions import right_click, left_click, double_click, right_scale_threshold, landmark_distance
+from lefthand_actions import left_hand_drag, left_scale_threshold
 
 cap = cv2.VideoCapture(0)                                                                                                                                                                                                                                                                                                                                                           
 
@@ -46,7 +46,7 @@ while True:
                 
                 move_cursor(pixel_x, pixel_y)
 
-                right_scaled_threshold = scale_threshold(wrist.x, wrist.y, middle_tip.x, middle_tip.y)
+                right_scaled_threshold = right_scale_threshold(wrist.x, wrist.y, middle_tip.x, middle_tip.y)
 
                 
                 if right_click(thumb_tip.x, thumb_tip.y, pinky_tip.x, pinky_tip.y, right_scaled_threshold):
@@ -66,9 +66,9 @@ while True:
                 pinky_tip = hand_landmarks[20]
                 wrist = hand_landmarks[0]
 
-                left_scaled_threshold = scale_threshold(wrist.x, wrist.y, middle_tip.x, middle_tip.y)
+                left_scaled_threshold = left_scale_threshold(wrist.x, wrist.y, middle_tip.x, middle_tip.y)
                 left_hand_drag(thumb_tip.x, thumb_tip.y, index_tip.x, index_tip.y, middle_tip.x, middle_tip.y, ring_tip.x, ring_tip.y, pinky_tip.x, pinky_tip.y, left_scaled_threshold)
-                cv2.circle(annotated_frame, (pixel_x, pixel_y), 10, (255, 0, 0), -1)
+
 
 
     inverted_frame = cv2.flip(annotated_frame, 1) #invert cam
