@@ -16,12 +16,12 @@
   },
   {
     "gesture": "swipe_right",
-    "function": "swide_right_virtual_desktop",
+    "function": "swipe_right_virtual_desktop",
     "hexkey": ["0x5B", "0xA2", "0x25"]
   },
   {
     "gesture": "swipe_left",
-    "function": "swide_left_virtual_desktop",
+    "function": "swipe_left_virtual_desktop",
     "hexkey": ["0x5B", "0xA2", "0x27"]
   }
 ]
