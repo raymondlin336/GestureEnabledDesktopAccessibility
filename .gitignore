@@ -1,6 +1,4 @@
-# Ignore all Python bytecode cache directories
+# Ignore Python cache directories
 __pycache__/
-
-# Optionally ignore compiled Python files too
-*.py[cod]
-*$py.class
+*/__pycache__/
+**/__pycache__/
