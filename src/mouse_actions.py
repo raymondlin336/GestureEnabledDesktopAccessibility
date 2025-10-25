@@ -5,7 +5,7 @@ from pynput.mouse import Button, Controller
 mouse = Controller()
 last_click_time = 0
 click_delay = 0.5
-threshold = 0.01
+threshold = 0.05 #try to scale the threshold to the distance of the hand from the screen (landmark 0 and 12)
 
 
 def landmark_distance(landmarkAx, landmarkAy, landmarkBx, landmarkBy):
