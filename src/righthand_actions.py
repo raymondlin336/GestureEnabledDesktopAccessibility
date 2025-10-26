@@ -7,6 +7,7 @@ mouse = Controller()
 last_click_time = 0
 click_delay = 0.5
 default_threshold = 0.05
+ok_used = False
 
 
 def landmark_distance(landmarkAx, landmarkAy, landmarkBx, landmarkBy):
@@ -72,4 +73,31 @@ def double_click(thumbX, thumbY, middleX, middleY, touching_threshold = default_
             mouse.click(Button.left, 1)
             last_click_time = current_time
             return True
+    return False
+
+
+
+ok_hold_start = None
+
+def ok_symbol(thumbX, thumbY, indexX, indexY, touching_threshold = default_threshold, holding_time = 1.0):
+    global last_click_time, ok_used, ok_hold_start
+    distance = landmark_distance(thumbX, thumbY, indexX, indexY)
+
+    if distance <= touching_threshold:
+        current_time = time.time()
+        
+
+        if ok_hold_start is None:
+            ok_hold_start = current_time
+        
+
+        hold_duration = current_time - ok_hold_start
+        if hold_duration >= holding_time:
+            print("detected ok - quitting")
+            ok_used = True
+            return True
+    else:
+
+        ok_hold_start = None
+        lefthand_actions.set_right_hand_left_click_status(False)
     return False
