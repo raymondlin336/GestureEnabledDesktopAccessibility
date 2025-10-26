@@ -7,6 +7,9 @@ Features:
 - play/pause (default: fist)
 - dekstop swipe left (default: swipe left)
   dekstop swipe right (default: swipe right)
+- left click, double click, right click
+- move and drag
+- scroll
 
 Instructions:
-- Run run_program.py
+- Run main_runner.py
