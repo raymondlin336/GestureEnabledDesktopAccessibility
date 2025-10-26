@@ -6,9 +6,13 @@ from cursor_control import move_cursor
 import gui_hands_mapping
 from gui_hands_mapping import ok_symbol, ok2_symbol, ok3_symbol, scale_threshold
 import tkinter as tk
+from PIL import Image, ImageTk
+from pathlib import Path
+
 
 
 def run_selector_program() -> str:
+    base_dir = Path(__file__).resolve().parent
     return_val = "cp"
     gui_hands_mapping.ok_used = False
     root = tk.Tk()
@@ -24,6 +28,26 @@ def run_selector_program() -> str:
 
     root.protocol("WM_DELETE_WINDOW", _on_close)
 
+    # frame layout:
+    frame_main = tk.Frame(root, bg="black")
+    frame_main.pack(padx=6, pady=6)
+
+    #load image
+    try:
+        img_path = Path(__file__).resolve().parent / "selector_img.jpg"
+        static_img = Image.open(img_path)
+        static_img = static_img.resize((856, 480))
+        static_img_tk = ImageTk.PhotoImage(static_img)
+        label_static = tk.Label(frame_main, image=static_img_tk)
+        label_static.image = static_img_tk
+        label_static.grid(row=0, column=0, padx=5)
+    except Exception as e:
+        label_static = tk.Label(frame_main, text="(Image not found)", fg="red")
+        label_static.grid(row=0, column=0, padx=5)
+
+    cam_label = tk.Label(frame_main)
+    cam_label.grid(row=0, column=1, padx=5)
+
     cap = cv2.VideoCapture(0)
 
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
@@ -32,6 +56,7 @@ def run_selector_program() -> str:
 
     if not cap.isOpened():
         print("Error: Webcam could not be opened")
+        root.destroy()
         exit()
     else:
         print("Webcam initialized!")
@@ -90,11 +115,15 @@ def run_selector_program() -> str:
                         gesture_detected = True
                         break
 
+        inverted_frame = cv2.flip(annotated_frame, 1)
+        frame_rgb = cv2.cvtColor(inverted_frame, cv2.COLOR_BGR2RGB)
+        img_pil = Image.fromarray(frame_rgb)
+        img_tk = ImageTk.PhotoImage(image=img_pil)
 
-        inverted_frame = cv2.flip(annotated_frame, 1)  # invert cam
-        cv2.imshow('Selector Cam Feed', inverted_frame)
+        cam_label.configure(image=img_tk)
+        cam_label.image = img_tk
 
-        cv2.waitKey(1)
+        #
 
         if gesture_detected:
             print("Quitting GUI Mode")
