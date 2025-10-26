@@ -7,7 +7,8 @@ import gui_hands_mapping
 from gui_hands_mapping import ok_symbol, ok2_symbol, ok3_symbol, scale_threshold
 
 
-def run_gui_program():
+def run_selector_program() -> str:
+    return_val = "cp"
     gui_hands_mapping.ok_used = False
     cap = cv2.VideoCapture(0)
 
@@ -50,18 +51,21 @@ def run_gui_program():
                     if ok_symbol(thumb_tip.x, thumb_tip.y, index_tip.x, index_tip.y, scaled_threshold,
                                      holding_time=0.5):
                         print("OK gesture detected")
+                        return_val = "quit"
                         gesture_detected = True
                         break
 
                     if ok2_symbol(thumb_tip.x, thumb_tip.y, middle_tip.x, middle_tip.y, scaled_threshold,
                                       holding_time=0.5):
                         print("OK2 gesture detected")
+                        return_val = "gp"
                         gesture_detected = True
                         break
 
                     if ok3_symbol(thumb_tip.x, thumb_tip.y, ring_tip.x, ring_tip.y, scaled_threshold,
                                       holding_time=0.5):
                         print("OK3 gesture detected")
+                        return_val = "cp"
                         gesture_detected = True
                         break
 
@@ -79,6 +83,9 @@ def run_gui_program():
     gui_hands.cleanup_hands()
     cv2.destroyAllWindows()
 
+    return return_val
+
 
 if __name__ == "__main__":
-    run_gui_program()
+    k = run_selector_program()
+    print(k)
