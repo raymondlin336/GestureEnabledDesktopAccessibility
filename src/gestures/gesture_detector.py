@@ -87,7 +87,6 @@ class GestureDetector:
         return None
 
     def process(self, frame, enabled_hud=True, enable_actions=True):
-        end_loop = False
         img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         res = self.hand.process(img)
         h, w = frame.shape[:2]
@@ -131,13 +130,12 @@ class GestureDetector:
             cv2.putText(frame, "swipe = desktops", (10, 125),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 200, 200), 1)
 
-        # actually act
-        if end_loop == True:
-            return frame, end_loop
+        if gesture_to_fire == "end_loop":
+            return frame, True
         elif enable_actions:
             if gesture_to_fire and self.can_fire(gesture_to_fire):
                 self.action(gesture_to_fire)
-        return frame, end_loop
+        return frame, False
 
     def run_backend_mainloop(self):
         cap = cv2.VideoCapture(0)
@@ -154,8 +152,12 @@ class GestureDetector:
             cv2.imshow('Gesture Control', frame)
             key = cv2.waitKey(1) & 0xFF
             if end_loop:
+                cap.release()
+                cv2.destroyAllWindows()
                 break
             if key == ord('q'):
+                cap.release()
+                cv2.destroyAllWindows()
                 break
 
         cap.release()
