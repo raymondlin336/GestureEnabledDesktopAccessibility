@@ -9,6 +9,7 @@ from lefthand_actions import left_hand_drag, left_scale_threshold, left_hand_scr
 from righthand_actions import ok_symbol
 
 def run_cursor_program():
+    righthand_actions.ok_used = False
     cap = cv2.VideoCapture(0)
 
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
@@ -90,7 +91,9 @@ def run_cursor_program():
         inverted_frame = cv2.flip(annotated_frame, 1) #invert cam
         cv2.imshow('Hand Tracking', inverted_frame)
 
-        if cv2.waitKey(1) & righthand_actions.ok_used:
+        cv2.waitKey(1)
+        
+        if righthand_actions.ok_used:
             print("Quitting Cursor Mode")
             break
 

@@ -7,18 +7,26 @@ mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 
+hands = None
 
-hands = mp_hands.Hands(
-    static_image_mode=False,
-    max_num_hands=2,
-    min_detection_confidence=0.5,
-    min_tracking_confidence=0.5
-)
+def init_hands():
+    global hands
+    if hands is None:
+        hands = mp_hands.Hands(
+            static_image_mode=False,
+            max_num_hands=2,
+            min_detection_confidence=0.5,
+            min_tracking_confidence=0.5
+        )
 
 def process_hand_frame(frame):
     """
     Gets landmarks 0 to 21 of the hand from each frame and returns a tuple for annotated_frame, landmarks_list, and handedness_list
     """
+    global hands
+    
+    if hands is None:
+        init_hands()
     
     rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
@@ -67,4 +75,7 @@ def get_hand_position(landmarks, frame_dimensions):
     return x, y
 
 def cleanup_hands():
-    hands.close()
+    global hands
+    if hands is not None:
+        hands.close()
+        hands = None
