@@ -1,15 +1,14 @@
 import cv2
 import numpy as np
-import get_hand
+import gui_hands
 import time
 from cursor_control import move_cursor
-import righthand_actions
-from righthand_actions import right_click, left_click, double_click, scale_threshold, landmark_distance
-from righthand_actions import ok_symbol
+import gui_hands_mapping
+from gui_hands_mapping import ok_symbol as gui_ok_symbol, fist_symbol, palm_symbol, detect_fist, detect_palm, scale_threshold
 
 
 def run_gui_program():
-    righthand_actions.ok_used = False
+    gui_hands_mapping.ok_used = False
     cap = cv2.VideoCapture(0)
 
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
@@ -32,7 +31,7 @@ def run_gui_program():
             print("Error: Could not read frame from webcam")
             break
 
-        annotated_frame, landmarks, handedness = get_hand.process_hand_frame(frame)
+        annotated_frame, landmarks, handedness = gui_hands.process_hand_frame(frame)
 
         if landmarks and handedness:
             for i, (hand_landmarks, hand_type) in enumerate(zip(landmarks, handedness)):
@@ -44,25 +43,24 @@ def run_gui_program():
                     pinky_tip = hand_landmarks[20]
                     wrist = hand_landmarks[0]
 
-                    pixel_x = int(index_tip.x * frame.shape[1])
-                    pixel_y = int(index_tip.y * frame.shape[0])
-
-                    move_cursor(pixel_x, pixel_y)
-
                     scaled_threshold = scale_threshold(wrist.x, wrist.y, middle_tip.x, middle_tip.y)
-
-                    if right_click(thumb_tip.x, thumb_tip.y, pinky_tip.x, pinky_tip.y, scaled_threshold):
-                        pass
-                    if left_click(thumb_tip.x, thumb_tip.y, ring_tip.x, ring_tip.y, scaled_threshold):
-                        pass
-                    if double_click(thumb_tip.x, thumb_tip.y, middle_tip.x, middle_tip.y, scaled_threshold):
-                        pass
-                    ok_symbol(thumb_tip.x, thumb_tip.y, index_tip.x, index_tip.y, scaled_threshold)
-
-                    cv2.circle(annotated_frame, (pixel_x, pixel_y), 10, (0, 255, 0), -1)
+                    
+                   
+                    if gui_ok_symbol(thumb_tip.x, thumb_tip.y, index_tip.x, index_tip.y, scaled_threshold, holding_time=0.5):
+                        print("OK gesture detected")
+                        break
+                
+                    if detect_fist(hand_landmarks):
+                        if fist_symbol(thumb_tip.x, thumb_tip.y, index_tip.x, index_tip.y, scaled_threshold, holding_time=0.5):
+                            print("Fist gesture detected")
+                            break
+                    
+                    if detect_palm(hand_landmarks):
+                        if palm_symbol(thumb_tip.x, thumb_tip.y, index_tip.x, index_tip.y, scaled_threshold, holding_time=0.5):
+                            print("Palm up gesture detected")
+                            break
 
                 elif hand_type == "Right":  # "right" is left hand in real life (inverted webcam)
-
                     index_tip = hand_landmarks[8]
                     thumb_tip = hand_landmarks[4]
                     middle_tip = hand_landmarks[12]
@@ -70,10 +68,21 @@ def run_gui_program():
                     pinky_tip = hand_landmarks[20]
                     wrist = hand_landmarks[0]
 
-                    pixel_x = int(index_tip.x * frame.shape[1])
-                    pixel_y = int(index_tip.y * frame.shape[0])
-
-                    ok_symbol(thumb_tip.x, thumb_tip.y, index_tip.x, index_tip.y, scaled_threshold)
+                    scaled_threshold = scale_threshold(wrist.x, wrist.y, middle_tip.x, middle_tip.y)               
+                 
+                    if gui_ok_symbol(thumb_tip.x, thumb_tip.y, index_tip.x, index_tip.y, scaled_threshold, holding_time=0.5):
+                        print("OK gesture detected")
+                        break
+                
+                    if detect_fist(hand_landmarks):
+                        if fist_symbol(thumb_tip.x, thumb_tip.y, index_tip.x, index_tip.y, scaled_threshold, holding_time=0.5):
+                            print("Fist gesture detected")
+                            break
+             
+                    if detect_palm(hand_landmarks):
+                        if palm_symbol(thumb_tip.x, thumb_tip.y, index_tip.x, index_tip.y, scaled_threshold, holding_time=0.5):
+                            print("Palm up gesture detected")
+                            break
 
 
         inverted_frame = cv2.flip(annotated_frame, 1)  # invert cam
@@ -81,14 +90,14 @@ def run_gui_program():
 
         cv2.waitKey(1)
 
-        if righthand_actions.ok_used:
+        if gui_hands_mapping.ok_used:
             print("Quitting GUI Mode")
             break
 
     cap.release()
-    get_hand.cleanup_hands()
+    gui_hands.cleanup_hands()
     cv2.destroyAllWindows()
 
 
 if __name__ == "__main__":
-    run_cursor_program()
+    run_gui_program()

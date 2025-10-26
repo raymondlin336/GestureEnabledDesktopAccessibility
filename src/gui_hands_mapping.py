@@ -1,11 +1,10 @@
 import math
 import time
 from pynput.mouse import Button, Controller
-import lefthand_actions
+
 
 mouse = Controller()
-last_click_time = 0
-click_delay = 0.5
+
 default_threshold = 0.05
 ok_used = False
 
@@ -22,65 +21,59 @@ def scale_threshold(wristX, wristY, middleX, middleY, threshold=default_threshol
 
     return scaled_threshold
 
-
-def right_click(thumbX, thumbY, pinkyX, pinkyY, touching_threshold=default_threshold, holding_time=0.2):
-    global last_click_time
-    distance = landmark_distance(thumbX, thumbY, pinkyX, pinkyY)
-
-    if lefthand_actions.is_left_hand_dragging():
-        return False
-
-    if distance <= touching_threshold:
-        current_time = time.time()
-        if current_time - last_click_time >= click_delay:
-            mouse.click(Button.right, 1)
-            last_click_time = current_time
-            return True
-    return False
+hold_fist_start = None
 
 
-def left_click(thumbX, thumbY, ringX, ringY, touching_threshold=default_threshold, holding_time=0.2):
-    global last_click_time
-    distance = landmark_distance(thumbX, thumbY, ringX, ringY)
-
-    if lefthand_actions.is_left_hand_dragging():
-        return False
+def fist_symbol(thumbX, thumbY, indexX, indexY, touching_threshold=default_threshold, holding_time=1.0):
+    global ok_used, hold_fist_start
+    distance = landmark_distance(thumbX, thumbY, indexX, indexY)
 
     if distance <= touching_threshold:
         current_time = time.time()
-        if current_time - last_click_time >= click_delay:
-            mouse.click(Button.left, 1)
-            last_click_time = current_time
-            lefthand_actions.set_right_hand_left_click_status(True)
+
+        if hold_fist_start is None:
+            hold_fist_start = current_time
+
+        hold_duration = current_time - hold_fist_start
+        if hold_duration >= holding_time:
+            print("detected fist - quitting")
+            ok_used = True
             return True
     else:
-        lefthand_actions.set_right_hand_left_click_status(False)
+
+        hold_fist_start = None
+
     return False
 
+palm_up_start = None
 
-def double_click(thumbX, thumbY, middleX, middleY, touching_threshold=default_threshold, holding_time=0.2):
-    global last_click_time
-    distance = landmark_distance(thumbX, thumbY, middleX, middleY)
 
-    if lefthand_actions.is_left_hand_dragging() | lefthand_actions.is_left_hand_scrolling():  # Disable clicks when left hand is dragging
-        return False
+def palm_symbol(thumbX, thumbY, indexX, indexY, touching_threshold=default_threshold, holding_time=1.0):
+    global ok_used, palm_up_start
+    distance = landmark_distance(thumbX, thumbY, indexX, indexY)
 
     if distance <= touching_threshold:
         current_time = time.time()
-        if current_time - last_click_time >= click_delay:
-            mouse.click(Button.left, 1)
-            time.sleep(0.2)
-            mouse.click(Button.left, 1)
-            last_click_time = current_time
-            return True
-    return False
 
+        if palm_up_start is None:
+            palm_up_start = current_time
+
+        hold_duration = current_time - palm_up_start
+        if hold_duration >= holding_time:
+            print("detected palm - quitting")
+            ok_used = True
+            return True
+    else:
+
+        palm_up_start = None
+
+    return False
 
 ok_hold_start = None
 
 
 def ok_symbol(thumbX, thumbY, indexX, indexY, touching_threshold=default_threshold, holding_time=1.0):
-    global last_click_time, ok_used, ok_hold_start
+    global ok_used, ok_hold_start
     distance = landmark_distance(thumbX, thumbY, indexX, indexY)
 
     if distance <= touching_threshold:
@@ -97,5 +90,70 @@ def ok_symbol(thumbX, thumbY, indexX, indexY, touching_threshold=default_thresho
     else:
 
         ok_hold_start = None
-        lefthand_actions.set_right_hand_left_click_status(False)
+
     return False
+
+
+def detect_fist(landmarks):
+
+    if not landmarks:
+        return False
+
+
+    thumb_tip = landmarks[4]
+    index_tip = landmarks[8]
+    middle_tip = landmarks[12]
+    ring_tip = landmarks[16]
+    pinky_tip = landmarks[20]
+
+
+    thumb_mcp = landmarks[3]
+    index_mcp = landmarks[5]
+    middle_mcp = landmarks[9]
+    ring_mcp = landmarks[13]
+    pinky_mcp = landmarks[17]
+
+
+    fingers_down = []
+    fingers_down.append(thumb_tip.x < thumb_mcp.x)
+    fingers_down.append(index_tip.y > index_mcp.y)
+    fingers_down.append(middle_tip.y > middle_mcp.y)
+    fingers_down.append(ring_tip.y > ring_mcp.y)
+    fingers_down.append(pinky_tip.y > pinky_mcp.y)
+
+    return sum(fingers_down) >= 4
+
+def is_fist():
+    return is_fist
+
+def detect_palm(landmarks):
+
+    if not landmarks:
+        return False
+
+
+    thumb_tip = landmarks[4]
+    index_tip = landmarks[8]
+    middle_tip = landmarks[12]
+    ring_tip = landmarks[16]
+    pinky_tip = landmarks[20]
+
+
+    thumb_mcp = landmarks[3]
+    index_mcp = landmarks[5]
+    middle_mcp = landmarks[9]
+    ring_mcp = landmarks[13]
+    pinky_mcp = landmarks[17]
+
+
+    fingers_down = []
+    fingers_down.append(thumb_tip.x < thumb_mcp.x)
+    fingers_down.append(index_tip.y > index_mcp.y)
+    fingers_down.append(middle_tip.y > middle_mcp.y)
+    fingers_down.append(ring_tip.y > ring_mcp.y)
+    fingers_down.append(pinky_tip.y > pinky_mcp.y)
+
+    return sum(fingers_down) == 0
+
+def is_palm():
+    return is_palm
