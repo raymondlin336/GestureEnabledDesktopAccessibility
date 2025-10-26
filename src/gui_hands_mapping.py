@@ -7,6 +7,8 @@ mouse = Controller()
 
 default_threshold = 0.05
 ok_used = False
+ok2_used = False
+ok3_used = False
 
 
 def landmark_distance(landmarkAx, landmarkAy, landmarkBx, landmarkBy):
@@ -21,55 +23,9 @@ def scale_threshold(wristX, wristY, middleX, middleY, threshold=default_threshol
 
     return scaled_threshold
 
-hold_fist_start = None
-
-
-def fist_symbol(thumbX, thumbY, indexX, indexY, touching_threshold=default_threshold, holding_time=1.0):
-    global ok_used, hold_fist_start
-    distance = landmark_distance(thumbX, thumbY, indexX, indexY)
-
-    if distance <= touching_threshold:
-        current_time = time.time()
-
-        if hold_fist_start is None:
-            hold_fist_start = current_time
-
-        hold_duration = current_time - hold_fist_start
-        if hold_duration >= holding_time:
-            print("detected fist - quitting")
-            ok_used = True
-            return True
-    else:
-
-        hold_fist_start = None
-
-    return False
-
-palm_up_start = None
-
-
-def palm_symbol(thumbX, thumbY, indexX, indexY, touching_threshold=default_threshold, holding_time=1.0):
-    global ok_used, palm_up_start
-    distance = landmark_distance(thumbX, thumbY, indexX, indexY)
-
-    if distance <= touching_threshold:
-        current_time = time.time()
-
-        if palm_up_start is None:
-            palm_up_start = current_time
-
-        hold_duration = current_time - palm_up_start
-        if hold_duration >= holding_time:
-            print("detected palm - quitting")
-            ok_used = True
-            return True
-    else:
-
-        palm_up_start = None
-
-    return False
-
 ok_hold_start = None
+ok2_hold_start = None
+ok3_hold_start = None
 
 
 def ok_symbol(thumbX, thumbY, indexX, indexY, touching_threshold=default_threshold, holding_time=1.0):
@@ -93,67 +49,45 @@ def ok_symbol(thumbX, thumbY, indexX, indexY, touching_threshold=default_thresho
 
     return False
 
+def ok2_symbol(thumbX, thumbY, middleX, middleY, touching_threshold=default_threshold, holding_time=1.0):
+    global ok2_used, ok2_hold_start
+    distance = landmark_distance(thumbX, thumbY, middleX, middleY)
 
-def detect_fist(landmarks):
+    if distance <= touching_threshold:
+        current_time = time.time()
 
-    if not landmarks:
-        return False
+        if ok2_hold_start is None:
+            ok2_hold_start = current_time
 
+        hold_duration = current_time - ok2_hold_start
+        if hold_duration >= holding_time:
+            print("detected ok2 - quitting")
+            ok2_used = True
+            return True
+    else:
 
-    thumb_tip = landmarks[4]
-    index_tip = landmarks[8]
-    middle_tip = landmarks[12]
-    ring_tip = landmarks[16]
-    pinky_tip = landmarks[20]
+        ok2_hold_start = None
 
+    return False
 
-    thumb_mcp = landmarks[3]
-    index_mcp = landmarks[5]
-    middle_mcp = landmarks[9]
-    ring_mcp = landmarks[13]
-    pinky_mcp = landmarks[17]
+def ok3_symbol(thumbX, thumbY, ringX, ringY, touching_threshold=default_threshold, holding_time=1.0):
+    global ok3_used, ok3_hold_start
+    distance = landmark_distance(thumbX, thumbY, ringX, ringY)
 
+    if distance <= touching_threshold:
+        current_time = time.time()
 
-    fingers_down = []
-    fingers_down.append(thumb_tip.x < thumb_mcp.x)
-    fingers_down.append(index_tip.y > index_mcp.y)
-    fingers_down.append(middle_tip.y > middle_mcp.y)
-    fingers_down.append(ring_tip.y > ring_mcp.y)
-    fingers_down.append(pinky_tip.y > pinky_mcp.y)
+        if ok3_hold_start is None:
+            ok3_hold_start = current_time
 
-    return sum(fingers_down) >= 4
+        hold_duration = current_time - ok3_hold_start
+        if hold_duration >= holding_time:
+            print("detected ok3 - quitting")
+            ok3_used = True
+            return True
+    else:
 
-def is_fist():
-    return is_fist
+        ok3_hold_start = None
 
-def detect_palm(landmarks):
+    return False
 
-    if not landmarks:
-        return False
-
-
-    thumb_tip = landmarks[4]
-    index_tip = landmarks[8]
-    middle_tip = landmarks[12]
-    ring_tip = landmarks[16]
-    pinky_tip = landmarks[20]
-
-
-    thumb_mcp = landmarks[3]
-    index_mcp = landmarks[5]
-    middle_mcp = landmarks[9]
-    ring_mcp = landmarks[13]
-    pinky_mcp = landmarks[17]
-
-
-    fingers_down = []
-    fingers_down.append(thumb_tip.x < thumb_mcp.x)
-    fingers_down.append(index_tip.y > index_mcp.y)
-    fingers_down.append(middle_tip.y > middle_mcp.y)
-    fingers_down.append(ring_tip.y > ring_mcp.y)
-    fingers_down.append(pinky_tip.y > pinky_mcp.y)
-
-    return sum(fingers_down) == 0
-
-def is_palm():
-    return is_palm

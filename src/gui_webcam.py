@@ -4,7 +4,7 @@ import gui_hands
 import time
 from cursor_control import move_cursor
 import gui_hands_mapping
-from gui_hands_mapping import ok_symbol as gui_ok_symbol, fist_symbol, palm_symbol, detect_fist, detect_palm, scale_threshold
+from gui_hands_mapping import ok_symbol, ok2_symbol, ok3_symbol, scale_threshold
 
 
 def run_gui_program():
@@ -33,9 +33,11 @@ def run_gui_program():
 
         annotated_frame, landmarks, handedness = gui_hands.process_hand_frame(frame)
 
+        gesture_detected = False
+
         if landmarks and handedness:
+
             for i, (hand_landmarks, hand_type) in enumerate(zip(landmarks, handedness)):
-                if hand_type == "Left":  # "left" is right hand in real life (inverted webcam)
                     index_tip = hand_landmarks[8]
                     thumb_tip = hand_landmarks[4]
                     middle_tip = hand_landmarks[12]
@@ -44,45 +46,24 @@ def run_gui_program():
                     wrist = hand_landmarks[0]
 
                     scaled_threshold = scale_threshold(wrist.x, wrist.y, middle_tip.x, middle_tip.y)
-                    
-                   
-                    if gui_ok_symbol(thumb_tip.x, thumb_tip.y, index_tip.x, index_tip.y, scaled_threshold, holding_time=0.5):
-                        print("OK gesture detected")
-                        break
-                
-                    if detect_fist(hand_landmarks):
-                        if fist_symbol(thumb_tip.x, thumb_tip.y, index_tip.x, index_tip.y, scaled_threshold, holding_time=0.5):
-                            print("Fist gesture detected")
-                            break
-                    
-                    if detect_palm(hand_landmarks):
-                        if palm_symbol(thumb_tip.x, thumb_tip.y, index_tip.x, index_tip.y, scaled_threshold, holding_time=0.5):
-                            print("Palm up gesture detected")
-                            break
 
-                elif hand_type == "Right":  # "right" is left hand in real life (inverted webcam)
-                    index_tip = hand_landmarks[8]
-                    thumb_tip = hand_landmarks[4]
-                    middle_tip = hand_landmarks[12]
-                    ring_tip = hand_landmarks[16]
-                    pinky_tip = hand_landmarks[20]
-                    wrist = hand_landmarks[0]
-
-                    scaled_threshold = scale_threshold(wrist.x, wrist.y, middle_tip.x, middle_tip.y)               
-                 
-                    if gui_ok_symbol(thumb_tip.x, thumb_tip.y, index_tip.x, index_tip.y, scaled_threshold, holding_time=0.5):
+                    if ok_symbol(thumb_tip.x, thumb_tip.y, index_tip.x, index_tip.y, scaled_threshold,
+                                     holding_time=0.5):
                         print("OK gesture detected")
+                        gesture_detected = True
                         break
-                
-                    if detect_fist(hand_landmarks):
-                        if fist_symbol(thumb_tip.x, thumb_tip.y, index_tip.x, index_tip.y, scaled_threshold, holding_time=0.5):
-                            print("Fist gesture detected")
-                            break
-             
-                    if detect_palm(hand_landmarks):
-                        if palm_symbol(thumb_tip.x, thumb_tip.y, index_tip.x, index_tip.y, scaled_threshold, holding_time=0.5):
-                            print("Palm up gesture detected")
-                            break
+
+                    if ok2_symbol(thumb_tip.x, thumb_tip.y, middle_tip.x, middle_tip.y, scaled_threshold,
+                                      holding_time=0.5):
+                        print("OK2 gesture detected")
+                        gesture_detected = True
+                        break
+
+                    if ok3_symbol(thumb_tip.x, thumb_tip.y, ring_tip.x, ring_tip.y, scaled_threshold,
+                                      holding_time=0.5):
+                        print("OK3 gesture detected")
+                        gesture_detected = True
+                        break
 
 
         inverted_frame = cv2.flip(annotated_frame, 1)  # invert cam
@@ -90,7 +71,7 @@ def run_gui_program():
 
         cv2.waitKey(1)
 
-        if gui_hands_mapping.ok_used:
+        if gesture_detected:
             print("Quitting GUI Mode")
             break
 
