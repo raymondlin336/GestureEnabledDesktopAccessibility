@@ -6,10 +6,13 @@ import mediapipe as mp
 from collections import deque
 
 class Gesture:
-    def __init__(self, gesture, function, hexkeys):
+    def __init__(self, gesture, function, hexkeys=None):
         self.gesture = gesture
         self.function = function
-        self.hexkeys = [int(hk, 16) for hk in hexkeys]
+        if hexkeys is not None:
+            self.hexkeys = [int(hk, 16) for hk in hexkeys]
+        else:
+            self.hexkeys = None
 
     def execute(self):
         for hk in self.hexkeys:
@@ -27,11 +30,12 @@ class GestureDetector:
                                    min_tracking_confidence=0.6)
         self.last_trigger = {}
         self.cooldowns = {
-            'fist': 1,
-            'thumbs_up': 0.4,
-            'thumbs_down': 0.4,
+            'fist': 2,
+            'thumbs_up': 0.2,
+            'thumbs_down': 0.2,
         }
         self.gestures_map = {}
+        self.gestures_map["okay"] = Gesture("okay", "end_loop")
         for g in gestures_list:
             gesture, function, hexkey = g["gesture"], g["function"], g["hexkey"]
             self.gestures_map[gesture] = Gesture(gesture, function, hexkey)
@@ -48,38 +52,33 @@ class GestureDetector:
     def action(self, gesture):
         self.gestures_map[gesture].execute()
 
-    def detect_swipe(self, h, w, hand_landmarks, summary):
-        """
-        Returns 'swipe_left', 'swipe_right', or None
-        """
+    def detect_swipe(self, h, w, hand_landmarks, summary, palm_size):
 
-        # get wrist coordinates in pixel space
         lm = hand_landmarks.landmark
         wrist_x = lm[0].x * w
         t_now = time.time()
+        hand_open = summary["num_extended"] == 5
+        self.motion_history.append((t_now, wrist_x, hand_open))
 
-        # save (time, x)
-        self.motion_history.append((t_now, wrist_x))
-
-        # need enough history to compare
         if len(self.motion_history) < 2:
             return None
 
-        # compare oldest vs newest
-        t_start, x_start = self.motion_history[0]
-        t_end, x_end = self.motion_history[-1]
+        # Compare to oldest positions
+        t_start, x_start, hand_open_start = self.motion_history[0]
+        t_end, x_end, hand_open_end = self.motion_history[-1]
 
+        # change in time and distance recorded
         dt = t_end - t_start
-        dx = x_end - x_start  # +dx == moved right on screen, -dx == left
+        dx = x_end - x_start
 
         # tune these:
-        SWIPE_TIME = 0.25      # sec window for a "fast" swipe
-        SWIPE_PIXELS = 120.0   # how far (in pixels) counts as a swipe
+        SWIPE_TIME = 1      # sec window for a "fast" swipe
+        SWIPE_PIXELS = palm_size * 0.5   # how far (in pixels) counts as a swipe
 
         # optional guard: require open hand so random movement doesn't trigger
-        hand_open_enough = summary["num_extended"] >= 4
+        hand_open_enough = summary["num_extended"] == 5
 
-        if dt <= SWIPE_TIME and hand_open_enough:
+        if dt <= SWIPE_TIME and hand_open_enough and hand_open_start and hand_open_end:
             if dx > SWIPE_PIXELS:
                 return "swipe_right"
             elif dx < -SWIPE_PIXELS:
@@ -88,6 +87,7 @@ class GestureDetector:
         return None
 
     def process(self, frame, enabled_hud=True, enable_actions=True):
+        end_loop = False
         img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         res = self.hand.process(img)
         h, w = frame.shape[:2]
@@ -95,7 +95,6 @@ class GestureDetector:
         handedness = None
 
         if res.multi_hand_landmarks:
-            print("========================================")
             hand_landmarks = res.multi_hand_landmarks[0]
             if res.multi_handedness:
                 handedness = res.multi_handedness[0].classification[0].label
@@ -105,11 +104,11 @@ class GestureDetector:
                 frame, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
 
             # static finger-open type gesture
-            summary = GestureClassifier.get_fingers_info(hand_landmarks, h, w)
+            summary, palm_size = GestureClassifier.get_fingers_info(hand_landmarks, h, w)
             static_gesture = GestureClassifier.classify_gesture(summary)
 
             # motion-based gesture (swipe)
-            swipe_gesture = self.detect_swipe(h, w, hand_landmarks, summary)
+            swipe_gesture = self.detect_swipe(h, w, hand_landmarks, summary, palm_size)
 
             # priority: swipes override static poses if swipe exists that frame
             gesture_to_fire = swipe_gesture if swipe_gesture else static_gesture
@@ -133,11 +132,12 @@ class GestureDetector:
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 200, 200), 1)
 
         # actually act
-        if enable_actions:
+        if end_loop == True:
+            return frame, end_loop
+        elif enable_actions:
             if gesture_to_fire and self.can_fire(gesture_to_fire):
                 self.action(gesture_to_fire)
-
-        return frame
+        return frame, end_loop
 
     def run_backend_mainloop(self):
         cap = cv2.VideoCapture(0)
@@ -150,9 +150,11 @@ class GestureDetector:
             if not ok:
                 break
             frame = cv2.flip(frame, 1)  # mirror for more natural control
-            frame = self.process(frame)
+            frame, end_loop = self.process(frame)
             cv2.imshow('Gesture Control', frame)
             key = cv2.waitKey(1) & 0xFF
+            if end_loop:
+                break
             if key == ord('q'):
                 break
 
