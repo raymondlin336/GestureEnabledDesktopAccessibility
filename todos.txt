@@ -1,0 +1,10 @@
+1. Fix fingers detection so thumbs down gets triggered more often instead of being mistaken as multiple fingers [done]
+2. Remove all other unnessesary things for now, leave palm close and open for future [done]
+3. Segmentate different classes and files [done]
+4. Implement play / pause [done]
+5. Implement using json array to configure default mappings [done]
+6. Implement prioritizing user configs for mappings
+7. Improve gesture detection so it works with a greater range of distances,
+and make thumb calculation based on relative numbers of other fingers, not hard coded
+8. Make certain customizations available, like how frequently the gui gets updated, and sensitivity of gestures
+9. Enable swiping left and right to switch desktops [done]
