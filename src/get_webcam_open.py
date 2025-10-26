@@ -3,8 +3,10 @@ import numpy as np
 import get_hand
 import time
 from cursor_control import move_cursor
+import righthand_actions
 from righthand_actions import right_click, left_click, double_click, scale_threshold, landmark_distance
 from lefthand_actions import left_hand_drag, left_scale_threshold, left_hand_scroll, is_left_hand_scrolling
+from righthand_actions import ok_symbol
 
 cap = cv2.VideoCapture(0)                                                                                                                                                                                                                                                                                                                                                           
 
@@ -30,7 +32,7 @@ while True:
         break                                                                                       
 
     annotated_frame, landmarks, handedness = get_hand.process_hand_frame(frame)
-
+    
     if landmarks and handedness:
         for i, (hand_landmarks, hand_type) in enumerate(zip(landmarks, handedness)):
             if hand_type == "Left": #"left" is right hand in real life (inverted webcam)
@@ -55,6 +57,7 @@ while True:
                     pass
                 if double_click(thumb_tip.x, thumb_tip.y, middle_tip.x, middle_tip.y, scaled_threshold):
                     pass
+                ok_symbol(thumb_tip.x, thumb_tip.y, index_tip.x, index_tip.y, scaled_threshold)
                 
                 cv2.circle(annotated_frame, (pixel_x, pixel_y), 10, (0, 255, 0), -1)
                 
@@ -72,6 +75,9 @@ while True:
                 
                 left_hand_drag(hand_landmarks)
                 left_hand_scroll(hand_landmarks, frame.shape[0])
+
+                scaled_threshold = scale_threshold(wrist.x, wrist.y, middle_tip.x, middle_tip.y)
+                ok_symbol(thumb_tip.x, thumb_tip.y, index_tip.x, index_tip.y, scaled_threshold)
                 
                 #left hand visuals
                 if is_left_hand_scrolling():
@@ -83,7 +89,8 @@ while True:
     inverted_frame = cv2.flip(annotated_frame, 1) #invert cam
     cv2.imshow('Hand Tracking', inverted_frame)
 
-    if cv2.waitKey(1) & 0xFF == ord('q'): #change with gui afterwards
+    if cv2.waitKey(1) & righthand_actions.ok_used:
+        print("Quitting Cursor Mode")
         break
 
 cap.release()

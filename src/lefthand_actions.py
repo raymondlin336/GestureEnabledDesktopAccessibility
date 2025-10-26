@@ -160,3 +160,4 @@ def left_hand_scroll(landmarks, frame_height):
 
 def is_left_hand_scrolling():
     return is_scrolling
+
