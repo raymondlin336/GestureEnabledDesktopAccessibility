@@ -31,7 +31,7 @@ class GestureClassifier:
             tip_x = pts[tip_i, 0]
             palm_tip_distance = math.sqrt(((abs(tip_y - palm_y))**2 + (abs(tip_x - palm_x))**2))
             #print(name, palm_tip_distance)
-            finger_extended = palm_tip_distance > palm_size * 0.9
+            finger_extended = palm_tip_distance > palm_size * 0.8
             finger_closed = palm_tip_distance < palm_size * 0.6
             fingers_extended[name] = finger_extended
             fingers_closed[name] = finger_closed
@@ -42,7 +42,7 @@ class GestureClassifier:
             if name == "index":
                 thumb_index_distance = math.sqrt(((abs(pts[4, 0] - tip_x))**2 + (abs(pts[4, 1] - tip_y))**2))
                 print(thumb_index_distance)
-                okay_symbol = thumb_index_distance < palm_size * 0.2
+                okay_symbol = thumb_index_distance < palm_size * 0.1
 
         if thumb_up is None or thumb_extended is None:
             print("Thumb not detected correctly.")

@@ -72,7 +72,7 @@ class GestureDetector:
         dx = x_end - x_start
 
         # tune these:
-        SWIPE_TIME = 1      # sec window for a "fast" swipe
+        SWIPE_TIME = 0.8      # sec window for a "fast" swipe
         SWIPE_PIXELS = palm_size * 0.5   # how far (in pixels) counts as a swipe
 
         # optional guard: require open hand so random movement doesn't trigger
