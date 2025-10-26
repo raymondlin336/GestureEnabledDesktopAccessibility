@@ -29,7 +29,7 @@ if __name__ == "__main__":
                 traceback.print_exc()
         elif mode_select == "cp":
             try:
-                run_gesture()
+                run_cursor()
             except KeyboardInterrupt:
                 print(f"[launcher] Cursor Program interrupted by user (KeyboardInterrupt).")
             except Exception as e:

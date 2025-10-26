@@ -5,11 +5,25 @@ import time
 from cursor_control import move_cursor
 import gui_hands_mapping
 from gui_hands_mapping import ok_symbol, ok2_symbol, ok3_symbol, scale_threshold
+import tkinter as tk
 
 
 def run_selector_program() -> str:
     return_val = "cp"
     gui_hands_mapping.ok_used = False
+    root = tk.Tk()
+    root.title("Selector Mode:")
+    root.resizable(False, False)
+    root.attributes("-topmost", True)
+
+    closed_by_user = {"flag": False}
+
+    def _on_close():
+        closed_by_user["flag"] = True
+        root.destroy()
+
+    root.protocol("WM_DELETE_WINDOW", _on_close)
+
     cap = cv2.VideoCapture(0)
 
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
@@ -25,6 +39,13 @@ def run_selector_program() -> str:
         print(f"FPS: {cap.get(cv2.CAP_PROP_FPS)}")
 
     while True:
+
+        if closed_by_user["flag"]:
+            return_val = "quit"
+            print("Selector window closed by user.")
+            break
+        root.update_idletasks()
+        root.update()
 
         ret, frame = cap.read()
 
@@ -71,7 +92,7 @@ def run_selector_program() -> str:
 
 
         inverted_frame = cv2.flip(annotated_frame, 1)  # invert cam
-        cv2.imshow('GUI', inverted_frame)
+        cv2.imshow('Selector Cam Feed', inverted_frame)
 
         cv2.waitKey(1)
 
@@ -82,6 +103,12 @@ def run_selector_program() -> str:
     cap.release()
     gui_hands.cleanup_hands()
     cv2.destroyAllWindows()
+
+    try:
+        if root.winfo_exists():
+            root.destroy()
+    except tk.TclError:
+        pass
 
     return return_val
 
