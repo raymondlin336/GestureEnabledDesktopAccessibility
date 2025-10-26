@@ -41,11 +41,11 @@ class GestureClassifier:
                 #print(thumb_up)
             if name == "index":
                 thumb_index_distance = math.sqrt(((abs(pts[4, 0] - tip_x))**2 + (abs(pts[4, 1] - tip_y))**2))
-                print(thumb_index_distance)
+                #print(thumb_index_distance)
                 okay_symbol = thumb_index_distance < palm_size * 0.1
 
-        if thumb_up is None or thumb_extended is None:
-            print("Thumb not detected correctly.")
+        # if thumb_up is None or thumb_extended is None:
+        #     print("Thumb not detected correctly.")
 
         finger_summary_info = {
             "num_extended": sum(fingers_extended.values()),
