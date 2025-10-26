@@ -5,9 +5,8 @@ from pynput.mouse import Button, Controller
 mouse = Controller()
 is_dragging = False
 is_scrolling = False
-right_hand_left_click_active = False
-default_threshold = 0.15
-sensitivity = 2
+right_hand_left_click_active = Falsedefault_threshold = 0.15
+sensitivity = 5
 old_y = None
 
 def landmark_distance(landmarkAx, landmarkAy, landmarkBx, landmarkBy):
@@ -144,14 +143,14 @@ def left_hand_scroll(landmarks, frame_height):
     y_change = y_position - old_y
 
     if abs(y_change) >= scroll_sensitivity:
-    
+
         scroll_amount = max(1, min(3, abs(y_change) // scroll_sensitivity))
-        
+
         if y_change < 0:
             mouse.scroll(0, scroll_amount)
         else:
             mouse.scroll(0, -scroll_amount)
-            
+
         is_scrolling = True
         old_y = y_position
     else:
@@ -160,4 +159,3 @@ def left_hand_scroll(landmarks, frame_height):
 
 def is_left_hand_scrolling():
     return is_scrolling
-
